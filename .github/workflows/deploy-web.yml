@@ -29,6 +29,15 @@ jobs:
           command -v cmake
           ls -l "$(command -v cmake)"
           cmake --version  
+
+      - name: Diagnose CMake
+        run: |
+          type -a cmake
+          command -v cmake
+          ls -l "$(command -v cmake)"
+          cmake --version
+          ls -ld cmake 2>/dev/null || true
+      
       - name: Build WebAssembly game
         run: make -f Makefile.web
       - uses: actions/configure-pages@v5

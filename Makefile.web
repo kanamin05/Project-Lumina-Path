@@ -18,7 +18,7 @@ $(RAYLIB_DIR)/CMakeLists.txt:
 
 web-lib: $(RAYLIB_DIR)/CMakeLists.txt
 	emcmake cmake -S $(RAYLIB_DIR) -B $(RAYLIB_BUILD) -DPLATFORM=Web -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release
-	emcmake cmake --build $(RAYLIB_BUILD) --parallel
+	cmake --build $(RAYLIB_BUILD) --parallel
 
 
 $(WEB_DIR)/index.html: $(SOURCES) common.h game_logic.h $(ASSETS) web/shell.html web-lib
