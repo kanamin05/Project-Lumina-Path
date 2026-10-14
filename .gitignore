@@ -1,0 +1,15 @@
+# Compiled executables
+/game
+/game.exe
+*.exe
+*.out
+
+# Object files
+*.o
+*.obj
+
+# macOS
+.DS_Store
+
+# Editor files
+.vscode/
