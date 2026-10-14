@@ -2,52 +2,36 @@
 #include "raylib.h"
 #include "common.h"
 #include "game_logic.h"
-
-int main() {
-    //初期化
-    InitWindow(WIN_W, WIN_H, "Lumina Path");
-    SetTargetFPS(60);
-    InitAudioDevice();
-
-    //サウンド、イメージの読み込み
-    seMirror       = LoadSound("se_mirror.wav"); //鏡反射音「キラーン」
-    sePrism        = LoadSound("se_prism.wav"); //プリズム分光音「シュピッ」
-    seContam       = LoadSound("se_contam.wav"); //汚染警告音「ジリジリ」
-    seTargetGlow   = LoadSound("se_target_glow.wav"); //ターゲット蓄積音「シャラシャラ」
-    seTargetClear  = LoadSound("se_target_clear.wav"); //ターゲット達成音「ピロン」
-    seRotate       = LoadSound("se_rotate.wav"); //エミッター操作音「ギー」
-    seMissionClear = LoadSound("se_mission_clear.wav"); //ミッションクリア「テッテレー」
-    bgm = LoadMusicStream("bgm.ogg"); //BGM
-    
-    bgm.looping = true;
-    SetMusicVolume(bgm, 0.35f);
-    PlayMusicStream(bgm);
-
-    //背景画像読み込み、リサイズ
-    Texture2D bgTex;
-    Image img = LoadImage("background.jpg");
-    if (img.data != NULL) {
-        ImageResize(&img, WIN_W, WIN_H);
-        bgTex = LoadTextureFromImage(img);
-        UnloadImage(img);
-    } else bgTex = (Texture2D){ 0 };
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
 
 
-    //ゲーム状態初期化
-    ResetInventory();
-    GameState currentState = STATE_TITLE; //最初はタイトル
-    int dragMode = 0; //【ドラッグモード】0:なし 1:鏡 2:プリズム 3:発射台
-    int dragIdx = -1; //何をドラッグしているか（↑）
-    bool dragStartNode = true; //線の始点か否か
-    float globalTime = 0;
-    bool missionCompletePlayed = false;
+static Texture2D bgTex;
+static GameState currentState;
+static int dragMode;
+static int dragIdx;
+static bool dragStartNode;
+static float globalTime;
+static bool missionCompletePlayed;
+#ifdef __EMSCRIPTEN__
+static bool musicStarted = false;
+#endif
 
-
-    //メインループ
-    while (!WindowShouldClose()) {
+static void GameFrame(void) {
         globalTime += GetFrameTime(); //経過時間の更新
         Vector2 mPos = GetMousePosition(); //マウス座標の取得
+#ifdef __EMSCRIPTEN__
+        // Browsers require a user gesture before starting audio.
+        if (!musicStarted &&
+            (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_R))) {
+            PlayMusicStream(bgm);
+            musicStarted = true;
+        }
+        if (musicStarted) UpdateMusicStream(bgm);
+#else
         UpdateMusicStream(bgm); //BGMのバッファ更新
+#endif
 
 
         //【状態遷移】
@@ -459,8 +443,57 @@ int main() {
                 DrawText("R: Reset  |  1-9,0: Jump to Stage", 20, WIN_H - 30, 15, GRAY);
             }
         EndDrawing();
-    }
+}
+
+int main(void) {
+    //初期化
+    InitWindow(WIN_W, WIN_H, "Lumina Path");
+    SetTargetFPS(60);
+    InitAudioDevice();
+
+    //サウンド、イメージの読み込み
+    seMirror       = LoadSound("se_mirror.wav"); //鏡反射音「キラーン」
+    sePrism        = LoadSound("se_prism.wav"); //プリズム分光音「シュピッ」
+    seContam       = LoadSound("se_contam.wav"); //汚染警告音「ジリジリ」
+    seTargetGlow   = LoadSound("se_target_glow.wav"); //ターゲット蓄積音「シャラシャラ」
+    seTargetClear  = LoadSound("se_target_clear.wav"); //ターゲット達成音「ピロン」
+    seRotate       = LoadSound("se_rotate.wav"); //エミッター操作音「ギー」
+    seMissionClear = LoadSound("se_mission_clear.wav"); //ミッションクリア「テッテレー」
+    bgm = LoadMusicStream("bgm.ogg"); //BGM
     
+    bgm.looping = true;
+    SetMusicVolume(bgm, 0.35f);
+#ifndef __EMSCRIPTEN__
+    PlayMusicStream(bgm);
+#endif
+
+    //背景画像読み込み、リサイズ
+
+    Image img = LoadImage("background.jpg");
+    if (img.data != NULL) {
+        ImageResize(&img, WIN_W, WIN_H);
+        bgTex = LoadTextureFromImage(img);
+        UnloadImage(img);
+    } else bgTex = (Texture2D){ 0 };
+
+
+    //ゲーム状態初期化
+    ResetInventory();
+    currentState = STATE_TITLE; //最初はタイトル
+    dragMode = 0; //【ドラッグモード】0:なし 1:鏡 2:プリズム 3:発射台
+    dragIdx = -1; //何をドラッグしているか（↑）
+    dragStartNode = true; //線の始点か否か
+    globalTime = 0;
+    missionCompletePlayed = false;
+
+
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(GameFrame, 0, 1);
+#else
+    while (!WindowShouldClose()) {
+        GameFrame();
+    }
     //【メモリ解放】
     UnloadSound(seMirror); 
     UnloadSound(sePrism); 
@@ -472,7 +505,8 @@ int main() {
     UnloadTexture(bgTex); 
     UnloadMusicStream(bgm); 
     CloseAudioDevice(); 
-    CloseWindow(); 
-    
+    CloseWindow();
+
+#endif
     return 0;
 }

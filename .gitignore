@@ -13,3 +13,9 @@
 
 # Editor files
 .vscode/
+
+# Generated web builds and dependencies
+/docs/
+/vendor/
+/build/
+*.before-web.bak

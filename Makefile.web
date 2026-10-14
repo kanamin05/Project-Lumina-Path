@@ -1,0 +1,31 @@
+# Web build for Project-Lumina-Path. Requires emcc, emcmake, CMake, Git and Make.
+# Usage: make -f Makefile.web
+RAYLIB_DIR ?= vendor/raylib
+RAYLIB_BUILD ?= build/raylib
+RAYLIB_VERSION ?= 5.5
+WEB_DIR ?= docs
+SOURCES := main.c game_logic.c
+ASSETS := background.jpg bgm.ogg $(wildcard se_*.wav)
+PRELOAD := $(foreach file,$(ASSETS),--preload-file $(file)@/$(file))
+RAYLIB_ARCHIVE = $(shell find $(RAYLIB_BUILD) -name libraylib.a -print -quit 2>/dev/null)
+
+.PHONY: all clean-web web-lib
+all: $(WEB_DIR)/index.html
+
+$(RAYLIB_DIR)/CMakeLists.txt:
+	git clone --depth 1 --branch $(RAYLIB_VERSION) https://github.com/raysan5/raylib.git $(RAYLIB_DIR)
+
+web-lib: $(RAYLIB_DIR)/CMakeLists.txt
+	emcmake cmake -S $(RAYLIB_DIR) -B $(RAYLIB_BUILD) -DPLATFORM=Web -DBUILD_EXAMPLES=OFF -DBUILD_GAMES=OFF -DCMAKE_BUILD_TYPE=Release
+	cmake --build $(RAYLIB_BUILD) --parallel
+
+$(WEB_DIR)/index.html: $(SOURCES) common.h game_logic.h $(ASSETS) web/shell.html web-lib
+	mkdir -p $(WEB_DIR)
+	@test -n "$(RAYLIB_ARCHIVE)" || (echo "Missing Web raylib archive" && exit 1)
+	emcc $(SOURCES) -std=c99 -O2 -I$(RAYLIB_DIR)/src \
+	  $(RAYLIB_ARCHIVE) -o $(WEB_DIR)/index.html \
+	  -sUSE_GLFW=3 -sALLOW_MEMORY_GROWTH=1 -sFORCE_FILESYSTEM=1 \
+	  -sEXIT_RUNTIME=0 --shell-file web/shell.html $(PRELOAD)
+
+clean-web:
+	rm -rf $(WEB_DIR) $(RAYLIB_BUILD)
