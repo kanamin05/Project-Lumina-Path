@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := all
+
 SRCS = main.c game_logic.c
 
 ifeq ($(OS),Windows_NT)
@@ -7,16 +9,19 @@ ifeq ($(OS),Windows_NT)
 else
     CC = cc
     TARGET = game
-
-    LIBS = $(shell pkg-config --libs raylib)
     CFLAGS = $(shell pkg-config --cflags raylib)
+    LIBS = $(shell pkg-config --libs raylib)
 endif
 
 .PHONY: all clean
+
 all: $(TARGET)
 
 $(TARGET): $(SRCS)
 	$(CC) $(CFLAGS) $(SRCS) -o $(TARGET) $(LIBS)
+
+# Prevent Makefile regeneration
+Makefile: ;
 
 clean:
 	rm -f $(TARGET)
