@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumina Path — Play in your browser</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 12px; min-height: 100vh; background: #080e1c; color: #e9f5ff;
+           font: 16px system-ui, -apple-system, sans-serif; text-align: center; }
+    h1 { margin: 0 0 6px; letter-spacing: .08em; }
+    p { margin: 8px 0 14px; color: #aac0d4; }
+    .frame { display: inline-block; max-width: 100%; border: 1px solid #29405e; border-radius: 10px;
+             overflow: hidden; background: #000; box-shadow: 0 12px 40px #0008; }
+    canvas { display: block; max-width: 100%; height: auto; outline: none; }
+    #status { margin: 8px auto; color: #b9d3e4; }
+    #status.error { color: #ff9c9c; }
+    a { color: #88d6ff; }
+    footer { margin-top: 16px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>LUMINA PATH</h1>
+  <p>A light-based puzzle game. Click the game, then press Enter to begin.</p>
+  <div class="frame"><canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas></div>
+  <div id="status">Loading game…</div>
+  <p>Mouse: drag mirrors, prisms and the emitter · Enter: start / next stage · R: reset</p>
+  <footer><a href="https://github.com/kanamin05/Project-Lumina-Path">Source code on GitHub</a></footer>
+  <script>
+    const canvas = document.getElementById('canvas');
+    canvas.addEventListener('pointerdown', () => canvas.focus());
+    var Module = {
+      canvas: canvas,
+      setStatus: function (message) {
+        const status = document.getElementById('status');
+        status.textContent = message || 'Ready — click the game and press Enter';
+        status.className = '';
+      },
+      printErr: function (message) { console.error(message); },
+      onAbort: function (message) {
+        const status = document.getElementById('status');
+        status.textContent = 'Unable to load the game: ' + message;
+        status.className = 'error';
+      }
+    };
+    window.addEventListener('error', function (event) {
+      console.error(event.error || event.message);
+    });
+  </script>
+  {{{ SCRIPT }}}
+</body>
+</html>

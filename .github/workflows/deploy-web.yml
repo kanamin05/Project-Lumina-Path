@@ -1,0 +1,48 @@
+name: Build and deploy Lumina Path (Web)
+
+on:
+  push:
+    branches: [web-deploy, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 'latest'
+      - name: Diagnose CMake environment
+        run: |
+          echo "$PATH"
+          type -a cmake
+          command -v cmake
+          ls -l "$(command -v cmake)"
+          cmake --version  
+
+      - name: Diagnose CMake
+        run: |
+          type -a cmake
+          command -v cmake
+          ls -l "$(command -v cmake)"
+          cmake --version
+          ls -ld cmake 2>/dev/null || true
+      
+      - name: Build WebAssembly game
+        run: make -f Makefile.web
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - uses: actions/deploy-pages@v4
+        if: github.ref == 'refs/heads/main'
