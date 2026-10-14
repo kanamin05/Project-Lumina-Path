@@ -2,7 +2,7 @@ name: Build and deploy Lumina Path (Web)
 
 on:
   push:
-    branches: [feature/web-version, main]
+    branches: [web-deploy, main]
   workflow_dispatch:
 
 permissions:
