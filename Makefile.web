@@ -8,6 +8,7 @@ SOURCES := main.c game_logic.c
 ASSETS := background.jpg bgm.ogg $(wildcard se_*.wav)
 PRELOAD := $(foreach file,$(ASSETS),--preload-file $(file)@/$(file))
 RAYLIB_ARCHIVE = $(shell find $(RAYLIB_BUILD) -name libraylib.a -print -quit 2>/dev/null)
+CMAKE := $(shell command -v cmake)
 
 .PHONY: all clean-web web-lib
 all: $(WEB_DIR)/index.html
@@ -18,7 +19,8 @@ $(RAYLIB_DIR)/CMakeLists.txt:
 
 web-lib: $(RAYLIB_DIR)/CMakeLists.txt
 	emcmake cmake -S $(RAYLIB_DIR) -B $(RAYLIB_BUILD) -DPLATFORM=Web -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release
-	cmake --build $(RAYLIB_BUILD) --parallel
+	$(CMAKE) --build $(RAYLIB_BUILD) --parallel
+
 
 
 $(WEB_DIR)/index.html: $(SOURCES) common.h game_logic.h $(ASSETS) web/shell.html web-lib
